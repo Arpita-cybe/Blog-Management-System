@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h1>
+                <a href="/" style="color: white; text-decoration: none;">Blog Management System</a>
+            </h1>
+            <div class="nav-links">
+                <a href="/addPost" class="add-post-btn">Add New Post</a>
+                <% if (session.user) { %>
+                    <a href="/logout" class="add-post-btn">Logout</a> <!-- Show Logout if user is logged in -->
+                <% } else { %>
+                    <a href="/login" class="add-post-btn">Login</a> <!-- Show Login if user is not logged in -->
+                <% } %>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <div class="posts-grid">
+            <% posts.forEach(post => { %>
+                <div class="post-card">
+                    <h2><%= post.title %></h2>
+                    <p><%= post.content.substring(0, 150) %>...</p>
+                    <div class="post-meta">
+                        <span><%= new Date(post.date).toLocaleDateString() %></span>
+                        <a href="/post/<%= post.id %>" class="read-more">Read More</a>
+                        <a href="/editPost/<%= post.id %>" class="edit-btn">Edit</a>
+                        <form action="/deletePost/<%= post.id %>" method="POST" style="display: inline;">
+                            <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
+    </main>
+</body>
+</html>
