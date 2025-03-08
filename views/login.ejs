@@ -15,20 +15,111 @@
     <main class="container">
         <div class="login-form">
             <h2>Login</h2>
-            <form action="/login" method="POST">
+            <form id="loginForm" action="/login" method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+                    <input type="text" id="loginUsername" name="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <input type="password" id="loginPassword" name="password" required>
+                </div>
+                <div class="form-group">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Remember Me</label>
                 </div>
                 <button type="submit">Login</button>
+                <p id="errorMessage" style="color: red; display: none;">Invalid username or password.</p>
                 <p><a href="/forgot-password" style="color: rgb(219, 217, 217); text-decoration: none;">Forgot Password?</a></p>
                 <p><a href="/signup" style="color: rgb(219, 217, 217); text-decoration: none;">Sign Up</a></p>
             </form>
+            <button id="logoutButton" style="display: none;">Log Out</button>
         </div>
     </main>
+    <script>
+        // Get DOM elements
+        const loginForm = document.getElementById("loginForm");
+        const usernameInput = document.getElementById("loginUsername");
+        const passwordInput = document.getElementById("loginPassword");
+        const rememberMeCheckbox = document.getElementById("rememberMe");
+        const errorMessage = document.getElementById("errorMessage");
+        const logoutButton = document.getElementById("logoutButton");
+
+        // Check if "Remember Me" data exists
+        window.addEventListener("load", () => {
+            const storedUsername = localStorage.getItem("rememberedUsername");
+            const storedPassword = localStorage.getItem("rememberedPassword");
+
+            if (storedUsername) {
+                usernameInput.value = storedUsername;
+                rememberMeCheckbox.checked = true;
+            }
+            if (storedPassword) {
+                passwordInput.value = storedPassword;
+            }
+        });
+
+        // Handle login form submission
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault(); // Prevent page reload
+
+            const enteredUsername = usernameInput.value;
+            const enteredPassword = passwordInput.value;
+
+            // Get all registered users from localStorage
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+
+            // Check if entered credentials match any registered user
+            const matchingUser   = users.find(user =>
+                user.username === enteredUsername && user.password === enteredPassword
+            );
+
+            if (matchingUser ) {
+                alert("Login Successful!");
+
+                // Save "Remember Me" data
+                if (rememberMeCheckbox.checked) {
+                    localStorage.setItem("rememberedUsername", enteredUsername);
+                    localStorage.setItem("rememberedPassword", enteredPassword);
+                } else {
+                    localStorage.removeItem("rememberedUsername");
+                    localStorage.removeItem("rememberedPassword");
+                }
+
+                // Show the Log Out button and hide the login form
+                loginForm.style.display = "none";
+                logoutButton.style.display = "block";
+
+                // Redirect to the homepage
+                window.location.href = "http://localhost:3000/"; // Redirect to the homepage after login
+            } else {
+                // Show error message for invalid credentials
+                errorMessage.style.display = "block";
+            }
+        });
+
+        // Hide error message on input
+        usernameInput.addEventListener("input", () => {
+            errorMessage.style.display = " none";
+        });
+
+        passwordInput.addEventListener("input", () => {
+            errorMessage.style.display = "none";
+        });
+
+        // Handle log out functionality
+        logoutButton.addEventListener("click", () => {
+            // Clear remembered credentials
+            localStorage.removeItem("rememberedUsername");
+            localStorage.removeItem("rememberedPassword");
+
+            // Show the login form and hide the Log Out button
+            loginForm.style.display = "block";
+            logoutButton.style.display = "none";
+
+            // Optionally, redirect to the login page
+            window.location.href = "/login"; // Redirect to the login page after logging out
+        });
+    </script>
 </body>
 </html>

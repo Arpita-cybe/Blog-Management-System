@@ -9,28 +9,56 @@
 <body>
     <nav>
         <div class="container">
-            <h1><a href="/" style="color: white; text-decoration: none;">Blog Management System</a></h1>
+            <h1><a href="/" style="color: rgb(219, 217, 217); text-decoration: none;">Blog Management System</a></h1>
         </div>
     </nav>
     <main class="container">
         <div class="signup-form">
             <h2>Sign Up</h2>
-            <form action="/signup" method="POST">
+            <form id="signupForm">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="signupUsername">Username</label>
+                    <input type="text" id="signupUsername" name="username" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" required>
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" name="password" required>
                 </div>
                 <button type="submit">Sign Up</button>
             </form>
         </div>
     </main>
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent default form submission behavior
+
+            // Collect form data
+            const userData = {
+                username: document.getElementById('signupUsername').value,
+                email: document.getElementById('signupEmail').value,
+                password: document.getElementById('signupPassword').value,
+            };
+
+            // Validate the form data
+            if (!userData.username || !userData.email || !userData.password) {
+                alert("Please fill out all fields.");
+                return;
+            }
+
+            // 1. Save user data to localStorage
+            const existingUsers = JSON.parse(localStorage.getItem('users')) || []; // Retrieve existing users, or an empty array if none exists
+            existingUsers.push(userData); // Add the new user to the array
+            localStorage.setItem('users', JSON.stringify(existingUsers)); // Save updated users back to localStorage
+            
+            console.log("Saved to localStorage:", existingUsers); // Debugging: See the updated users array in the console
+
+            alert("Sign Up successful! You will be redirected to the homepage.");
+            window.location.href = "http://localhost:3000/"; // Redirect to the homepage after sign up
+        });
+    </script>
 </body>
 </html>
