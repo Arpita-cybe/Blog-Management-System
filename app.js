@@ -2,6 +2,8 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const session = require("express-session");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer"); // For sending emails
 const app = express();
 
 // Middleware
@@ -19,8 +21,11 @@ app.use(session({
 
 // Dummy user for demonstration
 let users = [
-    { username: 'admin', password: 'password' } // Replace with a secure method in production
+    { username: 'admin', password: 'password', email: 'admin@example.com' } // Replace with a secure method in production
 ];
+
+// Reviews array to store reviews
+let reviews = [];
 
 // Logging middleware
 app.use((req, res, next) => {
@@ -32,7 +37,7 @@ app.use((req, res, next) => {
 app.get("/", (req, res) => {
     try {
         const posts = JSON.parse(fs.readFileSync("posts.json", "utf8"));
-        res.render("home", { posts, session: req.session });
+        res.render("home", { posts, session: req.session, reviews }); // Pass reviews to the home page
     } catch (error) {
         res.status(500).render("error", { error: "Error loading posts" });
     }
@@ -77,11 +82,43 @@ app.get("/forgot-password", (req, res) => {
 });
 
 // Handle forgot password form submission
-app.post("/forgot-password", (req, res) => {
+app.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
-    // Logic to send a password reset link goes here
-    // For demonstration, we'll just send a success message
-    res.send(`Password reset link sent to ${email}.`);
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+        return res.status(404).send("User  not found");
+    }
+
+    // Generate a reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+    // Send email with reset link
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    const transporter = nodemailer.createTransport({
+        service: 'gmail', // Use your email service
+        auth: {
+            user: 'your_email@gmail.com', // Your email
+            pass: 'your_email_password' // Your email password or app password
+        }
+    });
+
+    const mailOptions = {
+        from: 'your_email@gmail.com',
+        to: user.email,
+        subject: 'Password Reset',
+        text: `You requested a password reset. Click here to reset: ${resetUrl}`
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        res.send(`Password reset link sent to ${email}.`);
+    } catch (error) {
+        console.error("Error sending email:", error);
+        res.status(500).send("Error sending email");
+    }
 });
 
 // Sign Up page
@@ -100,7 +137,7 @@ app.post("/signup", (req, res) => {
     }
 
     // Add the new user to the dummy users array
-    users.push({ username, password }); // In a real application, hash the password and save to a database
+    users.push({ username, email, password }); // In a real application, hash the password and save to a database
 
     // Store the user in the session
     req.session.user = { username }; // Store user in session
@@ -150,7 +187,7 @@ app.post("/addPost", (req, res) => {
     }
 });
 
-app.get("/editPost/:id ", (req, res) => {
+app.get("/editPost/:id", (req, res) => {
     try {
         const posts = JSON.parse(fs.readFileSync("posts.json", "utf8"));
         const post = posts.find((p) => p.id === parseInt(req.params.id));
@@ -205,6 +242,29 @@ app.post("/deletePost/:id", (req, res) => {
     }
 });
 
+// Review routes
+app.get("/reviews", (req, res) => {
+    res.render("reviews", { reviews }); // Render reviews page with reviews data
+});
+
+app.post("/reviews", (req, res) => {
+    const { username, rating, comment } = req.body;
+    if (!username || !rating) {
+        return res.status(400).json({ error: "Username and rating are required" });
+    }
+
+    const newReview = {
+        id: reviews.length + 1, // Simple ID generation
+        username,
+        rating,
+        comment,
+        createdAt: new Date(),
+    };
+
+    reviews.push(newReview);
+    res.status(201).json(newReview);
+});
+
 // Catch-all route for 404 errors
 app.get("*", (req, res) => {
     res.status(404).render("error", { error: "Page not found" });
@@ -215,6 +275,3 @@ const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
-// Create the logged-out.ejs file in the views directory
-// Ensure you have the following content in views/logged-out.ejs
