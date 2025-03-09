@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Reviews</title>
+    <link rel="stylesheet" href="/css/style.css"> <!-- Link to your CSS file -->
+    <style>
+        /* Additional styles for the reviews section */
+        .reviews-container {
+            margin: 2rem auto;
+            max-width: 800px; /* Set a max width for the reviews section */
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .reviews-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Space between stars and heading */
+            margin-bottom: 1rem; /* Space below the header */
+        }
+
+        .reviews-container h1 {
+            font-size: 2.5rem; /* Increase font size */
+            font-weight: bold; /* Make it bold */
+            font-style: italic; /* Make it italic */
+            color: #007bff; /* Change color to a beautiful blue */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Add a subtle shadow for depth */
+            margin: 0; /* Remove default margin */
+        }
+
+        .gold-stars {
+            color: gold; /* Color for the stars */
+            font-size: 2rem; /* Size of the stars */
+        }
+
+        .review-form {
+            margin-bottom: 2rem; /* Space below the form */
+        }
+
+        .review-form input,
+        .review-form textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 1rem; /* Space between inputs */
+        }
+
+        .review-form button {
+            width: 100%;
+            padding: 0.5rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s; /* Smooth background transition */
+        }
+
+        .review-form button:hover {
+            background: #0056b3; /* Darker blue on hover */
+        }
+
+        .star-rating {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 1rem; /* Space below the star rating */
+        }
+
+        .star {
+            font-size: 2rem; /* Size of the stars */
+            color: #ddd; /* Default color */
+            cursor: pointer;
+            transition: color 0.2s; /* Smooth color transition */
+        }
+
+        .star:hover,
+        .star.selected {
+            color: gold; /* Color when hovered or selected */
+        }
+
+        .review-card {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem; /* Space between reviews */
+        }
+
+        .review-card strong {
+            color: #007bff; /* Color for the username */
+            font-size: 1.2rem; /* Slightly larger font size */
+        }
+
+        .review-card .rating {
+            font-weight: bold; /* Make the rating bold */
+            color: #ffcc00; /* Gold color for the rating */
+            margin-bottom: 0.5rem; /* Space below the rating */
+        }
+
+        .review-card p {
+            color: #666;
+        }
+
+        .review-card small {
+            display: block;
+            margin-top: 0.5rem;
+            color: #999; /* Lighter color for the timestamp */
+        }
+    </style>
+</head>
+<body>
+    <div class="reviews-container">
+        <div class="reviews-header">
+                <span class="gold-stars">&#9733;</span>
+                <span class="gold-stars">&#9733;</span>
+                <span class="gold-stars">&#9733;</span>
+            <h1>User Reviews</h1>
+                <span class="gold-stars">&#9733;</span>
+                <span class="gold-stars">&#9733;</span>
+                <span class="gold-stars">&#9733;</span>
+        </div>
+        <form class="review-form" id="reviewForm" action="/reviews" method="POST">
+            <input type="text" name="username" placeholder="Your Name" required>
+            <h2>Your Rating</h2>
+            <div class="star-rating">
+                <input type="radio" name="rating" value="1" id="star5" required>
+                <label class="star" for="star5">&#9733;</label>
+                <input type="radio" name="rating" value="2" id="star4" required>
+                <label class="star" for="star4">&#9733;</label>
+                <input type="radio" name="rating" value="3" id="star3" required>
+                <label class="star" for="star3">&#9733;</label>
+                <input type="radio" name="rating" value="4" id="star2" required>
+                <label class="star" for="star2">&#9733;</label>
+                <input type="radio" name="rating" value="5" id="star1" required>
+                <label class="star" for="star1">&#9733;</label>
+            </div>
+            <textarea name="comment" placeholder="Your Review" required></textarea>
+            <button type="submit">Submit Review</button>
+        </form>
+        <h2>All Reviews</h2>
+        <ul>
+            <% reviews.forEach(review => { %>
+                <li class="review-card">
+                    <strong><%= review.username %></strong>
+                    <div class="rating">Your Rating: <%= review.rating %></div> <!-- Display the rating -->
+                    <p><%= review.comment %></p>
+                    <small>Posted on <%= new Date(review.createdAt).toLocaleString() %></small>
+                    <form action="/deleteReview/<%= review.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this review?');">Delete</button>
+                    </form>
+                </li>
+            <% }) %>
+        </ul>
+    </div>
+    <script>
+        // JavaScript to handle star rating selection
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                // Remove 'selected' class from all stars
+                stars.forEach(s => s.classList.remove('selected'));
+                // Add 'selected' class to the clicked star and all previous stars
+                star.classList.add('selected');
+                let previousStar = star.previousElementSibling;
+                while (previousStar) {
+                    previousStar.classList.add('selected');
+                    previousStar = previousStar.previousElementSibling;
+                }
+            });
+        });
+
+        // JavaScript to show popup on form submission
+        const reviewForm = document.getElementById('reviewForm');
+        reviewForm.addEventListener('submit', (event) => {
+            event.preventDefault(); // Prevent the default form submission
+            alert('Thank you for your review!'); // Show popup message
+            reviewForm.submit(); // Submit the form after showing the alert
+        });
+    </script>
+</body>
+</html>
